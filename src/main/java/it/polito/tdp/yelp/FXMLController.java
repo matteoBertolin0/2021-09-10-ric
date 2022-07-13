@@ -5,7 +5,12 @@
 package it.polito.tdp.yelp;
 
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.ResourceBundle;
+
+import it.polito.tdp.yelp.model.Business;
 import it.polito.tdp.yelp.model.Model;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -37,31 +42,68 @@ public class FXMLController {
     private TextField txtX2; // Value injected by FXMLLoader
 
     @FXML // fx:id="cmbCitta"
-    private ComboBox<?> cmbCitta; // Value injected by FXMLLoader
+    private ComboBox<String> cmbCitta; // Value injected by FXMLLoader
 
     @FXML // fx:id="cmbB1"
-    private ComboBox<?> cmbB1; // Value injected by FXMLLoader
+    private ComboBox<Business> cmbB1; // Value injected by FXMLLoader
 
     @FXML // fx:id="cmbB2"
-    private ComboBox<?> cmbB2; // Value injected by FXMLLoader
+    private ComboBox<Business> cmbB2; // Value injected by FXMLLoader
 
     @FXML // fx:id="txtResult"
     private TextArea txtResult; // Value injected by FXMLLoader
     
     @FXML
     void doCreaGrafo(ActionEvent event) {
-    	
+    	try {
+    		txtResult.clear();
+    		String str = cmbCitta.getValue();
+    		
+    		model.creaGrafo(str);
+    		
+    		txtResult.appendText("Grafo creato con "+model.getGrafo().vertexSet().size()+" vertici e "+model.getGrafo().edgeSet().size()+" archi");
+    		
+    		cmbB1.getItems().clear();
+    		cmbB2.getItems().clear();
+    		List<Business> lista = new ArrayList<>();
+    		for(Business b :model.getGrafo().vertexSet()) {
+    			lista.add(b);
+    		}
+    		Collections.sort(lista);
+    		cmbB1.getItems().addAll(lista);
+    		cmbB2.getItems().addAll(lista);
+    	}catch(Exception e) {
+    		txtResult.setText("Selezionare una città");
+    	}
     }
 
     @FXML
     void doCalcolaLocaleDistante(ActionEvent event) {
-
+    	try {
+    		txtResult.clear();
+    		
+    		Business b = model.getPiuDistante(cmbB1.getValue());
+    		
+    		txtResult.appendText("LOCALE PIU' DISTANTE:\n"+ b + " = " + model.getGrafo().getEdgeWeight(model.getGrafo().getEdge(b, cmbB1.getValue())));
+    		
+    		
+    	}catch(Exception e) {
+    		txtResult.setText("Selezionare una città");
+    	}
     	
     }
 
     @FXML
     void doCalcolaPercorso(ActionEvent event) {
-
+    	try {
+    		txtResult.clear();
+    		model.calcolaPercorso(cmbB1.getValue(), cmbB2.getValue(), Integer.parseInt(txtX2.getText()));
+    		txtResult.appendText(model.getPercorso().toString());
+    		
+    		
+    	}catch(Exception e) {
+    		txtResult.setText("Selezionare una città");
+    	}
     }
 
 
@@ -80,5 +122,13 @@ public class FXMLController {
     
     public void setModel(Model model) {
     	this.model = model;
+    	
+    	cmbCitta.getItems().clear();
+    	
+    	List<String> lista = model.getAllCity();
+    	
+    	Collections.sort(lista);
+    	
+    	cmbCitta.getItems().addAll(lista);
     }
 }
